@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>
+    <title>WordPlay</title>
+    <link rel='stylesheet' href='styles_wordplay.css'>
+</head>
+<body>
+    <div class='dark-toggle'>
+        <label>
+            <input type='checkbox' id='dark-mode-toggle'> Dark Mode
+        </label>
+    </div>
+    <h1>WordPlay</h1>
+    <div class='panel'>
+        <h2>Sentences <span class='info-icon' id='info-icon-sentences'>i</span></h2>
+        <p><strong>Number of sentences in current package:</strong> <span id='sentence-count'>0</span></p>
+        <input type='text' id='sentence-input' placeholder='Sentence in original language' aria-label='Original sentence'>
+        <input type='text' id='translation-input' placeholder="Word-by-word translation (Order won't matter unless you specify positions, e.g. 'word(2,3)')" aria-label='Translation'>
+        <input type='text' id='distractor-input' placeholder='Distractors (separated by commas)' aria-label='Distractors for this sentence'>
+        <div class='button-group'>
+            <button id='add-btn'>Add</button>
+            <button id='clear-sentences-btn'>Delete all sentences</button>
+            <button id='export-btn'>Export current JSON</button>
+            <input type='file' id='import-file' accept='.json' style='display:none' aria-label='Import JSON file'>
+            <button id='import-btn'>Import JSON</button>
+        </div>
+        <h2>Difficulty and Interaction Management</h2>
+        <select id='select-difficulty' aria-label='Difficulty level'>
+            <option value='easy'>Easy</option>
+            <option value='normal' selected>Normal</option>
+            <option value='hard'>Hard</option>
+        </select>
+        <div class='button-group'>
+            <button id='end-session-btn'>End current session</button>
+            <button id='reset-btn'>Reset learning</button>
+        </div>
+    </div>
+    <div class='panel'>
+        <div class='score'>
+            Score: <span id='score'>0</span><span id='streak-display'></span>
+            <span class='score-note'>(+20 correct, –10 wrong)</span>
+        </div>
+        <div class='source-sentence' id='source-sentence' aria-live='polite'></div>
+        <div class='word-bank' id='word-bank' role='group' aria-label='Word bank'></div>
+        <div class='answer-area' id='answer-area' role='group' aria-label='Your answer'></div>
+        <div class='feedback' id='feedback' aria-live='assertive'></div>
+        <button id='check-btn'>Check</button>
+        <button id='hint-btn'>Hint</button>
+        <button id='next-btn'>Next sentence</button>
+    </div>
+    <template id='skip-modal-template'>
+        <div class='modal-overlay' style='display:none;' role='dialog' aria-modal='true' aria-labelledby='skip-modal-title'>
+            <div class='modal-box'>
+                <h2 id='skip-modal-title'>Skip without checking?</h2>
+                <p>You haven't checked your answer. If you skip, you'll lose the chance to earn points.</p>
+                <p>Do you want to proceed?</p>
+                <label>
+                    <input type='checkbox' id='skip-dont-show'> Don't show this again
+                </label>
+                <div class='modal-buttons'>
+                    <button id='skip-cancel-btn'>Cancel</button>
+                    <button id='skip-confirm-btn'>Skip</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id='session-modal-template'>
+        <div class='modal-overlay' style='display:none;' role='dialog' aria-modal='true' aria-labelledby='session-modal-title'>
+            <div class='modal-box'>
+                <h2 id='session-modal-title'> SESSION OVER </h2>
+                <div id='session-stats'>
+                    <p> Result: <span id='session-score'>0</span></p>
+                    <p> Correct answers: <span id='session-correct'>0</span></p>
+                    <p> Wrong answers: <span id='session-wrong'>0</span></p>
+                    <p> Best streak: <span id='session-streak'>0</span></p>
+                </div>
+                <div class='modal-buttons'>
+                    <button id='session-close-btn'>Close</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id='info-modal-template'>
+        <div class='modal-overlay' style='display:none;' role='dialog' aria-modal='true' aria-labelledby='info-modal-title'>
+            <div class='modal-box'>
+                <h2 id='info-modal-title'>INFO</h2>
+                <p><strong>Creating and using sentence packs:</strong></p>
+                <ul>
+                    <li><strong>Original sentence</strong> – the text you want to practice written in the original, target language.</li>
+                    <li><strong>Translation</strong> – word‑by‑word order. Use <code>word(2,3)</code> to allow a word at position 2 or 3 in the sentence. Two words may share a position only if at least one of them has more than one possible position (e.g., <code>word1(1,2) word2(1)</code> is <strong>valid</strong>, but <code>word1(1) word2(1)</code> is <strong>invalid</strong>).</li>
+                    <li><strong>Distractors</strong> – comma‑separated words that will appear as decoys that will make it harder to correctly solve a word.</li>
+                    <li>Use <strong>Export</strong> / <strong>Import</strong> to save and share your packs and use other peoples'.</li>
+                </ul>
+                <p><strong>Extra info:</strong></p>
+                <ul>
+                    <li>Avoid using capitalization where you can: it will make it more difficult to know which word is the first within the translation.</li>
+                    <li>If you use any punctuation marks, divide them from the other text with a blank space like you would a word. Just like with a word, in a sentence where word-order is important, the punctuation mark needs tagging.</li>
+                    <li>Clicking "DELETE ALL SENTENCES" will erase the currently loaded sentence pack, to save it you must export it in JSON format.</li>
+                </ul>
+                <div class='modal-buttons'>
+                    <button class='info-close-btn'>Close</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id='confirm-modal-template'>
+        <div class='modal-overlay' style='display:none;' role='dialog' aria-modal='true' aria-labelledby='confirm-title'>
+            <div class='modal-box'>
+                <h2 id='confirm-title'>Confirmation</h2>
+                <p id='confirm-message'></p>
+                <div class='modal-buttons'>
+                    <button id='confirm-cancel-btn'>Cancel</button>
+                    <button id='confirm-ok-btn'>OK</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    <script src='script_wordplay.js'></script>
+</body>
+</html>
