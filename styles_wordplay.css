@@ -401,6 +401,18 @@ body.dark-mode .answer-word.incorrect {
 #skip-cancel-btn:hover {
     background: #c96f4a;
 }
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1rem 0;
+}
+footer p {
+    margin: 0.3rem 0;
+}
+footer a {
+    color: inherit;
+    text-decoration: underline;
+}
 @media (max-width: 30rem) {
     body {
         padding: 0.8rem;
